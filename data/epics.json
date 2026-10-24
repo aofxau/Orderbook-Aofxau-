@@ -1,0 +1,74 @@
+{
+ "EURUSD": {
+  "epic": "CS.D.EURUSD.CFD.IP",
+  "name": "EUR/USD"
+ },
+ "GBPUSD": {
+  "epic": "CS.D.GBPUSD.CFD.IP",
+  "name": "GBP/USD"
+ },
+ "USDJPY": {
+  "epic": "CS.D.USDJPY.CFD.IP",
+  "name": "USD/JPY"
+ },
+ "USDCHF": {
+  "epic": "CS.D.USDCHF.CFD.IP",
+  "name": "USD/CHF"
+ },
+ "AUDUSD": {
+  "epic": "CS.D.AUDUSD.CFD.IP",
+  "name": "AUD/USD"
+ },
+ "USDCAD": {
+  "epic": "CS.D.USDCAD.CFD.IP",
+  "name": "USD/CAD"
+ },
+ "NZDUSD": {
+  "epic": "CS.D.NZDUSD.CFD.IP",
+  "name": "NZD/USD"
+ },
+ "EURGBP": {
+  "epic": "CS.D.EURGBP.CFD.IP",
+  "name": "EUR/GBP"
+ },
+ "EURJPY": {
+  "epic": "CS.D.EURJPY.CFD.IP",
+  "name": "EUR/JPY"
+ },
+ "GBPJPY": {
+  "epic": "CS.D.GBPJPY.CFD.IP",
+  "name": "GBP/JPY"
+ },
+ "AUDJPY": {
+  "epic": "CS.D.AUDJPY.CFD.IP",
+  "name": "AUD/JPY"
+ },
+ "EURCHF": {
+  "epic": "CS.D.EURCHF.CFD.IP",
+  "name": "EUR/CHF"
+ },
+ "NAS100": {
+  "epic": "IX.D.NASDAQ.IFD.IP",
+  "name": "US Tech 100 Cash ($100)",
+  "marketId": "USTECH"
+ },
+ "SPX500": {
+  "epic": "IX.D.SPTRD.IFD.IP",
+  "name": "US 500 Cash ($250)",
+  "marketId": "US500"
+ },
+ "US30": {
+  "epic": "IX.D.DOW.IFD.IP",
+  "name": "Wall Street Cash ($10)",
+  "marketId": "WALL"
+ },
+ "DE40": {
+  "epic": "IX.D.DAX.IFD.IP",
+  "name": "Germany 40 Cash (E25)"
+ },
+ "USOIL": {
+  "epic": "CC.D.CL.BMU.IP",
+  "name": "Oil - US Crude ($1)",
+  "marketId": "CL"
+ }
+}

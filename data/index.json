@@ -1,1 +1,1 @@
-{"updated":1792823985718,"symbols":["NZDUSD","EURGBP","XAUUSD","EURJPY","USDCHF","XAGUSD","EURCHF","AUDUSD","USDJPY","GBPJPY","EURUSD","DE40","AUDJPY","USDCAD","GBPUSD"]}
+{"updated":1792824498515,"symbols":["NZDUSD","EURGBP","XAUUSD","EURJPY","USDCHF","XAGUSD","EURCHF","AUDUSD","USDJPY","GBPJPY","EURUSD","DE40","AUDJPY","USDCAD","GBPUSD","NAS100","SPX500","US30","USOIL"],"prices":[],"allowance":null,"priceErrors":["EURUSD: IG 403 /prices/CS.D.EURUSD.CFD.IP?resolution=MINUTE_30&max=48&pageSize=0 {\"errorCode\":\"error.public-api.exceeded-api-key-allowance\"}"]}
