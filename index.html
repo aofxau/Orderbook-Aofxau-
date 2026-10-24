@@ -65,10 +65,12 @@ details summary{cursor:pointer;color:#7a8fb0;padding:6px 2px}
   <span class="live" id="live" role="status">Demo</span>
 </div>
 <div class="bar">
+  <select id="tz" aria-label="เขตเวลา"><option value="7">เวลาไทย (UTC+7)</option><option value="3">เวลา MT5 (UTC+3 · ช้ากว่าไทย 4 ชม.)</option><option value="2">เวลา MT5 (UTC+2 · ช้ากว่าไทย 5 ชม.)</option><option value="0">UTC</option></select>
   <input type="date" id="dt" aria-label="วันที่">
   <select id="tm" aria-label="เวลา"></select>
   <span class="seg" role="group" aria-label="โหมดแท่ง"><button id="mAll" aria-pressed="true">All Metrics</button><button id="mNet" aria-pressed="false">Net</button></span>
   <span class="seg" role="group" aria-label="ตัวควบคุม"><button id="cWeb" aria-pressed="true">เลื่อนหน้าเว็บ</button><button id="cChart" aria-pressed="false">เลื่อนกราฟ</button></span>
+  <span class="seg" role="group" aria-label="ปรับราคาให้ตรง MT5"><input type="number" id="mt5" step="any" inputmode="decimal" placeholder="ราคา MT5 ตอนนี้" aria-label="ราคา MT5 ตอนนี้" style="width:140px;border:0;border-radius:0"><button id="mt5b">ปรับให้ตรง</button><button id="mt5c">ล้าง</button></span>
   <span class="seg" role="group" aria-label="ซูม"><button id="zo" aria-label="ซูมออก">−</button><button id="zi" aria-label="ซูมเข้า">+</button><button id="zr">รีเซ็ตซูม</button></span>
 </div>
 <p class="note" id="src" style="margin:0 0 8px" role="status"></p>
@@ -76,7 +78,7 @@ details summary{cursor:pointer;color:#7a8fb0;padding:6px 2px}
 <div class="grid">
   <div class="card main">
     <div class="hd" id="hd"></div>
-    <div class="chart"><svg id="svg" viewBox="0 0 840 440" role="img" aria-label="กราฟแท่งเทียนและออเดอร์"><defs><clipPath id="cp"><rect x="0" y="12" width="840" height="416"/></clipPath></defs><g id="main" clip-path="url(#cp)"></g><g id="ch" clip-path="url(#cp)"></g></svg></div>
+    <div class="chart"><svg id="svg" viewBox="0 0 840 456" role="img" aria-label="กราฟแท่งเทียนและออเดอร์"><defs><clipPath id="cp"><rect x="0" y="12" width="840" height="416"/></clipPath></defs><g id="main" clip-path="url(#cp)"></g><g id="ch" clip-path="url(#cp)"></g><g id="ax"></g></svg></div>
   </div>
   <div class="card hist">
     <h2>Pending Orders <small id="oTag"></small></h2>
@@ -115,12 +117,20 @@ const sel=$("sym");
 sel.value="XAUUSD";
 const SL=1800000,pad=n=>String(n).padStart(2,"0");
 for(let h=0;h<24;h++)for(const m of["00","30"]){const e=document.createElement("option");e.textContent=pad(h)+":"+m;$("tm").appendChild(e)}
-function setNow(){const t=new Date(Math.floor(Date.now()/SL)*SL);$("dt").value=t.getFullYear()+"-"+pad(t.getMonth()+1)+"-"+pad(t.getDate());$("tm").value=pad(t.getHours())+":"+pad(t.getMinutes())}
+let tzH=7;try{const v=parseFloat(localStorage.getItem("tzH"));if([7,3,2,0].includes(v))tzH=v}catch(e){}
+$("tz").value=String(tzH);
+const TZL=h=>"UTC"+(h>=0?"+":"")+h;
+function setInputs(ms){const q=new Date(ms+tzH*3600000);$("dt").value=q.getUTCFullYear()+"-"+pad(q.getUTCMonth()+1)+"-"+pad(q.getUTCDate());$("tm").value=pad(q.getUTCHours())+":"+pad(q.getUTCMinutes())}
+function setNow(){setInputs(Math.floor(Date.now()/SL)*SL)}
 setNow();
+let offs={};try{offs=JSON.parse(localStorage.getItem("offs")||"{}")}catch(e){}
+let lastRaw=null;
+const saveOffs=()=>{try{localStorage.setItem("offs",JSON.stringify(offs))}catch(e){}};
+const shiftC=cs=>{lastRaw=cs.length?cs[cs.length-1].c:null;const f=offs[sel.value]||0;return f?cs.map(x=>({t:x.t,o:x.o+f,h:x.h+f,l:x.l+f,c:x.c+f})):cs};
 let mode="all",z=1,off=0,D=null,tfM=30,tfK=1,tfNote="",pxSrc="IG",srcTf=30,sent=null,realPx=false,realBook=false;
 const TFN={1:120,5:120,30:96,60:72,240:48},TFL={1:"M1",5:"M5",30:"M30",60:"H1",240:"H4"},DUR=m=>m*60000;
 function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const selT=()=>new Date($("dt").value+"T"+($("tm").value||"00:00")).getTime();
+const selT=()=>{const d=($("dt").value||"").split("-").map(Number),m=($("tm").value||"00:00").split(":").map(Number);if(d.length<3||d.some(isNaN))return NaN;return Date.UTC(d[0],d[1]-1,d[2],m[0]||0,m[1]||0)-tzH*3600000};
 function agg(cs,k){
   if(k===1)return cs;
   const m=new Map();
@@ -197,8 +207,8 @@ async function build(){
       const r=await fetch("data/klines/"+sel.value+"_"+tfM+"m.json",{cache:"no-cache"});
       if(r.ok){
         const arr=await r.json(),du=DUR(tfM);
-        const cs=arr.filter(x=>x.t+du<=TT||TT===Infinity&&x.t<=Date.now()).slice(-TFN[tfM]);
-        if(cs.length>=10){mock(cs);realPx=true;realBook=false;tfNote="แท่ง "+TFL[tfM]+" จาก Binance";pxSrc="Binance";await applyBook(TT===Infinity?Date.now():TT);return}
+        let cs=arr.filter(x=>x.t+du<=TT||TT===Infinity&&x.t<=Date.now()).slice(-TFN[tfM]);
+        if(cs.length>=10){cs=shiftC(cs);mock(cs);realPx=true;realBook=false;tfNote="แท่ง "+TFL[tfM]+" จาก Binance";pxSrc="Binance";await applyBook(TT===Infinity?Date.now():TT);return}
       }
       tfNote=TFL[tfM]+" ใช้ได้เฉพาะ XAUUSD/XAGUSD (หรือข้อมูลยังไม่ครบ) แสดง M30 แทน";tfK=1;srcTf=30;
     }
@@ -208,7 +218,7 @@ async function build(){
       let cs=arr.filter(x=>typeof x.c==="number"&&x.t+(TT===Infinity?0:SL)<=TT).map(x=>({t:x.t,o:typeof x.o==="number"?x.o:x.c,h:typeof x.h==="number"?x.h:x.c,l:typeof x.l==="number"?x.l:x.c,c:x.c}));
       if(cs.length){const md=cs.map(x=>x.c).slice().sort((a,b)=>a-b)[cs.length>>1];cs=cs.filter(x=>Math.abs(x.c-md)/md<0.25)}
       cs=agg(cs.slice(-96*tfK),tfK).slice(-TFN[srcTf>=30?srcTf:30]);
-      if(cs.length>=10){mock(cs);realPx=true;await applyBook(TT===Infinity?Date.now():TT);return}
+      if(cs.length>=10){cs=shiftC(cs);mock(cs);realPx=true;await applyBook(TT===Infinity?Date.now():TT);return}
     }
   }catch(e){}
   mock();
@@ -243,6 +253,11 @@ function draw(){
   const yc=y(cur);
   o+=`<line x1="${MC.x0}" x2="${MC.b1}" y1="${yc}" y2="${yc}" stroke="var(--gr)" stroke-dasharray="3 3"/><rect x="${MC.b1+2}" y="${yc-9}" width="60" height="18" rx="2" fill="var(--gr)"/><text x="${MC.b1+6}" y="${yc+4}" style="fill:#fff;font-weight:600">${cur.toFixed(d)}</text>`;
   $("main").innerHTML=o;
+  const fT=ms=>{const q=new Date(ms+tzH*3600000);return pad(q.getUTCDate())+"/"+pad(q.getUTCMonth()+1)+" "+pad(q.getUTCHours())+":"+pad(q.getUTCMinutes())};
+  let ax="";const tk=Math.min(6,n);
+  for(let k=0;k<tk;k++){const i=tk===1?0:Math.round(k*(n-1)/(tk-1));const xc=MC.x0+(i+.5)*sw;ax+=`<text x="${xc}" y="450" text-anchor="${k===0?"start":k===tk-1?"end":"middle"}">${fT(cand[i].t)}</text>`}
+  ax+=`<text x="${MC.b1+8}" y="450">${TZL(tzH)}</text>`;
+  $("ax").innerHTML=ax;
   // hist panels
   const hist=(arr,mx,id,labels)=>{
     let h=gridY(lo,hi,y,d,32,HC.cx+HC.hw+6,0,"start");
@@ -268,6 +283,7 @@ function stats(){
   $("oTag").textContent=realBook?"Limit จริง · Stop ไม่มีข้อมูล":"จำลอง";
   $("pTag").textContent=sent?"ยอดรวม=IG · กระจายจำลอง":"จำลอง";
   $("src").textContent=(tfNote?tfNote+" · ":"")+"ราคา: "+(realPx?"ข้อมูลจริงจาก "+pxSrc:"ข้อมูลจำลอง (ยังไม่มีราคาจริงของช่วงนี้)")+" · Pending order: "+(realBook?"Limit จริง (Binance)":"ข้อมูลจำลอง")+" · Open position: "+(sent?"ยอดรวม Long/Short จริงจาก IG (การกระจายตามราคาเป็นข้อมูลจำลอง)":"ข้อมูลจำลอง");
+  const fo=offs[sel.value]||0;if(fo)$("src").textContent+=" · ปรับราคา "+(fo>=0?"+":"")+fo.toFixed(D.c.d)+" ให้ตรง MT5";
   const lv2=$("live");lv2.textContent=realPx?"Live":"Demo";lv2.className="live"+(realPx?" on":"");
 }
 const TVS={EURUSD:"FX:EURUSD",GBPUSD:"FX:GBPUSD",USDJPY:"FX:USDJPY",USDCHF:"FX:USDCHF",AUDUSD:"FX:AUDUSD",USDCAD:"FX:USDCAD",NZDUSD:"FX:NZDUSD",EURGBP:"FX:EURGBP",EURJPY:"FX:EURJPY",GBPJPY:"FX:GBPJPY",AUDJPY:"FX:AUDJPY",EURCHF:"FX:EURCHF",XAUUSD:"OANDA:XAUUSD",XAGUSD:"OANDA:XAGUSD",NAS100:"OANDA:NAS100USD",SPX500:"OANDA:SPX500USD",US30:"OANDA:US30USD",DE40:"OANDA:DE30EUR",USOIL:"TVC:USOIL"};
@@ -289,16 +305,19 @@ async function refresh(reset){tv();if(reset){z=1;off=0}await build();await loadS
 function setZ(f){z=Math.min(12,Math.max(1,z*f));if(z===1)off=0;draw()}
 function setMode(m){mode=m;$("mAll").setAttribute("aria-pressed",m==="all");$("mNet").setAttribute("aria-pressed",m==="net");draw()}
 function setTf(m){tfM=m;document.querySelectorAll("[data-tf]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tf===m));refresh(true)}
+$("tz").onchange=()=>{const T=selT();tzH=parseFloat($("tz").value);try{localStorage.setItem("tzH",String(tzH))}catch(e){}if(!isNaN(T))setInputs(T);refresh(false)};
 sel.onchange=()=>refresh(true);$("dt").onchange=$("tm").onchange=()=>refresh(true);
 $("mAll").onclick=()=>setMode("all");$("mNet").onclick=()=>setMode("net");
 document.querySelectorAll("[data-tf]").forEach(b=>b.onclick=()=>setTf(+b.dataset.tf));
+$("mt5b").onclick=()=>{const v=parseFloat($("mt5").value);if(!isFinite(v)||lastRaw==null)return;offs[sel.value]=v-lastRaw;saveOffs();refresh(false)};
+$("mt5c").onclick=()=>{delete offs[sel.value];saveOffs();$("mt5").value="";refresh(false)};
 $("zi").onclick=()=>setZ(1.5);$("zo").onclick=()=>setZ(1/1.5);$("zr").onclick=()=>{z=1;off=0;draw()};
 let drag=null,ctl="web";
 const svgs=[$("svg"),$("svgO"),$("svgP")];
 function setCtl(m){ctl=m;drag=null;$("cWeb").setAttribute("aria-pressed",m==="web");$("cChart").setAttribute("aria-pressed",m==="chart");svgs.forEach(s=>{s.style.touchAction=m==="chart"?"none":"pan-y";s.style.cursor=m==="chart"?"crosshair":"default"});if(m==="web")$("ch").innerHTML=""}
 $("cWeb").onclick=()=>setCtl("web");$("cChart").onclick=()=>setCtl("chart");setCtl("web");
 svgs.forEach(sv=>{
-  const sy=e=>{const r=sv.getBoundingClientRect();return(e.clientY-r.top)*440/r.height};
+  const sy=e=>{const r=sv.getBoundingClientRect();return(e.clientY-r.top)*sv.viewBox.baseVal.height/r.height};
   sv.addEventListener("wheel",e=>{if(ctl!=="chart")return;e.preventDefault();setZ(e.deltaY<0?1.15:1/1.15)},{passive:false});
   sv.addEventListener("pointerdown",e=>{if(ctl!=="chart")return;drag=sy(e);sv.setPointerCapture(e.pointerId)});
   sv.addEventListener("pointerup",()=>{drag=null});
