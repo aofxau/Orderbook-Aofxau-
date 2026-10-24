@@ -46,11 +46,19 @@ if (!login.ok) throw new Error(`IG login ${login.status} ${await login.text()}`)
 const cst = login.headers.get("CST");
 const xst = login.headers.get("X-SECURITY-TOKEN");
 
-async function ig(path, version = "1") {
+async function ig(path, version = "1", tries = 4) {
   const r = await fetch(HOST + path, {
     headers: { "X-IG-API-KEY": KEY, CST: cst, "X-SECURITY-TOKEN": xst, Version: version, Accept: "application/json; charset=UTF-8" },
   });
-  if (!r.ok) throw new Error(`IG ${r.status} ${path} ${(await r.text()).slice(0, 200)}`);
+  if (!r.ok) {
+    const body = (await r.text()).slice(0, 200);
+    // ชนลิมิตคำขอต่อนาที: รอแล้วลองใหม่ (ไม่ใช่โควตาประวัติราคารายสัปดาห์)
+    if ((r.status === 403 || r.status === 429) && /exceeded-api-key-allowance|too-many|rate/i.test(body) && tries > 1) {
+      await sleep(25000);
+      return ig(path, version, tries - 1);
+    }
+    throw new Error(`IG ${r.status} ${path} ${body}`);
+  }
   return r.json();
 }
 
@@ -61,7 +69,10 @@ for (const [sym, [term, type]] of Object.entries(SEARCH)) {
   if (epics[sym]?.epic) continue;
   try {
     const d = await ig("/markets?searchTerm=" + encodeURIComponent(term));
-    const list = (d.markets || []).filter((m) => m.instrumentType === type && !BAD.test(m.instrumentName || ""));
+    const all = d.markets || [];
+    let list = all.filter((m) => m.instrumentType === type && !BAD.test(m.instrumentName || ""));
+    if (!list.length) list = all.filter((m) => !/mini|micro|option/i.test(m.instrumentName || "") && m.expiry === "-");
+    if (!list.length) console.warn("ผลค้นหา", sym, JSON.stringify(all.slice(0, 5).map((m) => [m.epic, m.instrumentName, m.instrumentType, m.expiry])));
     const score = (m) =>
       (m.expiry === "-" ? 4 : 0) + (/\.IP$/.test(m.epic) ? 2 : 0) + (/^(CS\.D|IX\.D)/.test(m.epic) ? 2 : 0) +
       ((m.instrumentName || "").toLowerCase().includes(term.toLowerCase()) ? 1 : 0);
@@ -71,7 +82,7 @@ for (const [sym, [term, type]] of Object.entries(SEARCH)) {
   } catch (e) {
     console.warn("search", sym, e.message);
   }
-  await sleep(2200); // กันชนโควตาคำขอ 30 ครั้ง/นาที
+  await sleep(3000);
 }
 // หา marketId สำหรับ sentiment ของตัวที่ยังไม่มี
 for (const [sym, id] of Object.entries(IG_IDS)) {
@@ -82,7 +93,7 @@ for (const [sym, id] of Object.entries(IG_IDS)) {
   } catch (e) {
     console.warn("marketId", sym, e.message);
   }
-  await sleep(2200);
+  await sleep(3000);
 }
 fs.writeFileSync("data/epics.json", JSON.stringify(epics, null, 1));
 
@@ -143,9 +154,9 @@ for (const [sym, e] of Object.entries(epics)) {
     savedPrices.push(sym);
   } catch (err) {
     priceErrors.push(`${sym}: ${err.message}`);
-    if (/allowance/i.test(err.message)) break; // โควตาหมด ไม่ต้องลองตัวถัดไป
+    if (/historical-data-allowance/i.test(err.message)) break; // โควตาประวัติราคารายสัปดาห์หมด
   }
-  await sleep(400);
+  await sleep(2500);
 }
 
 fs.writeFileSync("data/index.json", JSON.stringify({
