@@ -25,7 +25,7 @@ h1{font-size:20px;margin:0 0 4px}
 @media(max-width:760px){.grid{grid-template-columns:1fr}}
 .panel{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px}
 .chart{overflow-x:auto}
-svg{display:block;width:100%;min-width:560px;height:auto;touch-action:none;cursor:crosshair}
+svg{display:block;width:100%;min-width:520px;height:auto;touch-action:none;cursor:crosshair}
 svg text{fill:var(--mu);font-size:11px;font-family:inherit}
 .st h2{font-size:14px;margin:0 0 10px}
 .row{margin-bottom:14px}
@@ -53,6 +53,7 @@ svg text{fill:var(--mu);font-size:11px;font-family:inherit}
 <div class="panel chart"><svg id="svg" viewBox="0 0 820 440" role="img" aria-label="กราฟราคาและแท่งออเดอร์"><defs><clipPath id="cp"><rect x="0" y="12" width="820" height="416"/></clipPath></defs><g id="main" clip-path="url(#cp)"></g><g id="ch" clip-path="url(#cp)"></g></svg></div>
 <div class="panel st" id="stats"></div>
 </div>
+<div class="panel chart" style="margin-top:12px"><p class="note" style="margin:0 0 6px"><b style="color:var(--sell)">Sell ←</b> <span style="float:right"><b style="color:var(--buy)">→ Buy</b></span></p><svg id="svg2" viewBox="0 0 820 560" role="img" aria-label="ออเดอร์บุ๊คแนวตั้ง แกนราคาด้านซ้าย"><defs><clipPath id="cp2"><rect x="0" y="12" width="820" height="520"/></clipPath></defs><g id="t2" clip-path="url(#cp2)"></g><g id="t2h" clip-path="url(#cp2)"></g></svg></div>
 <p class="note">ไม่ใช่คำแนะนำการลงทุน ข้อมูลเป็นการกระจายตัวของออเดอร์ลูกค้า OANDA และอัปเดตทุก 30 นาที</p>
 </main>
 <script>
@@ -134,6 +135,28 @@ function draw(){
   const yc=y(cur);
   o+=`<line x1="${x0}" x2="${b1}" y1="${yc}" y2="${yc}" stroke="var(--px)" stroke-dasharray="4 4"/><rect x="${b1+2}" y="${yc-9}" width="56" height="18" rx="3" fill="var(--px)"/><text x="${b1+6}" y="${yc+4}" style="fill:var(--bg)">${cur.toFixed(c.d)}</text>`;
   $("main").innerHTML=o;
+  tlap();
+}
+const T2={top:12,bot:530,l:80,r:800};
+function tlap(){
+  const {c,cur,lv,step}=D,[lo,hi]=view(),H=T2.bot-T2.top,y=v=>T2.bot-(v-lo)/(hi-lo)*H;
+  const net=mode==="net",cx=(T2.l+T2.r)/2,hw=(T2.r-T2.l)/2-6;
+  const tot=lv.reduce((t,l)=>t+l.buy+l.sell,0)||1;
+  const val=l=>net?Math.abs(l.buy-l.sell):Math.max(l.buy,l.sell);
+  const mx=Math.max(...lv.map(val))||1,mp=mx/tot*100;
+  let o="";
+  const n=8,gs=(hi-lo)/n;
+  for(let i=0;i<=n;i++){const v=lo+gs*i,yy=y(v);o+=`<line x1="${T2.l}" x2="${T2.r}" y1="${yy}" y2="${yy}" stroke="var(--bd)" stroke-dasharray="4 4"/><text x="${T2.l-8}" y="${yy+4}" text-anchor="end">${v.toFixed(c.d)}</text>`}
+  o+=`<line x1="${cx}" x2="${cx}" y1="${T2.top}" y2="${T2.bot}" stroke="var(--mu)"/>`;
+  const bh=Math.max(1.5,(step/(hi-lo))*H*.8);
+  lv.forEach(l=>{const yy=y(l.price)-bh/2;if(yy>T2.bot||yy<T2.top-bh)return;
+    const tip=`<title>${l.price.toFixed(c.d)} · buy ${l.buy.toFixed(2)} · sell ${l.sell.toFixed(2)}</title>`;
+    if(net){const d=l.buy-l.sell,w=Math.abs(d)/mx*hw;o+=`<g>${tip}<rect x="${d>=0?cx:cx-w}" y="${yy}" width="${w}" height="${bh}" fill="var(${d>=0?"--buy":"--sell"})"/></g>`}
+    else{const wb=l.buy/mx*hw,ws=l.sell/mx*hw;o+=`<g>${tip}<rect x="${cx-ws}" y="${yy}" width="${ws}" height="${bh}" fill="var(--sell)" opacity=".85"/><rect x="${cx}" y="${yy}" width="${wb}" height="${bh}" fill="var(--buy)" opacity=".85"/></g>`}});
+  const yc=y(cur);
+  o+=`<line x1="${T2.l}" x2="${T2.r}" y1="${yc}" y2="${yc}" stroke="#2ecc71" stroke-width="2"/><rect x="2" y="${yc-10}" width="72" height="20" rx="3" fill="#2ecc71"/><text x="38" y="${yc+4}" text-anchor="middle" style="fill:#06210f;font-weight:600">${cur.toFixed(c.d)}</text>`;
+  o+=`<text x="${T2.l}" y="${T2.bot+16}" text-anchor="start">${mp.toFixed(2)}%</text><text x="${cx}" y="${T2.bot+16}" text-anchor="middle">0</text><text x="${T2.r}" y="${T2.bot+16}" text-anchor="end">${mp.toFixed(2)}%</text>`;
+  $("t2").innerHTML=o;
 }
 function stats(){
   const {lv,cur,pl}=D,sum=a=>a.reduce((t,l)=>t+l.buy+l.sell,0);
@@ -162,6 +185,19 @@ svg.addEventListener("pointermove",e=>{
   $("ch").innerHTML=`<line x1="${x0}" x2="${b1}" y1="${v}" y2="${v}" stroke="var(--mu)" stroke-dasharray="2 3"/><rect x="${b1+2}" y="${v-9}" width="56" height="18" rx="3" fill="var(--mu)"/><text x="${b1+6}" y="${v+4}" style="fill:var(--bg)">${p.toFixed(D.c.d)}</text>`;
 });
 svg.addEventListener("pointerleave",()=>{$("ch").innerHTML=""});
+const svg2=$("svg2");let drag2=null;
+const sy2=e=>{const r=svg2.getBoundingClientRect();return(e.clientY-r.top)*560/r.height};
+svg2.addEventListener("wheel",e=>{e.preventDefault();setZ(e.deltaY<0?1.15:1/1.15)},{passive:false});
+svg2.addEventListener("pointerdown",e=>{drag2=sy2(e);svg2.setPointerCapture(e.pointerId)});
+svg2.addEventListener("pointerup",()=>{drag2=null});
+svg2.addEventListener("pointermove",e=>{
+  const v=sy2(e);
+  if(drag2!==null&&e.buttons){const[lo,hi]=view();off+=(v-drag2)*(hi-lo)/(T2.bot-T2.top);drag2=v;draw();return}
+  if(v<T2.top||v>T2.bot){$("t2h").innerHTML="";return}
+  const[lo,hi]=view(),p=hi-(v-T2.top)/(T2.bot-T2.top)*(hi-lo);
+  $("t2h").innerHTML=`<line x1="${T2.l}" x2="${T2.r}" y1="${v}" y2="${v}" stroke="var(--mu)" stroke-dasharray="2 3"/><rect x="2" y="${v-9}" width="72" height="18" rx="3" fill="var(--mu)"/><text x="38" y="${v+4}" text-anchor="middle" style="fill:var(--bg)">${p.toFixed(D.c.d)}</text>`;
+});
+svg2.addEventListener("pointerleave",()=>{$("t2h").innerHTML=""});
 refresh(true);
 </script>
 </body>
