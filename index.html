@@ -54,9 +54,19 @@ svg text{fill:var(--mu);font-size:11px;font-family:inherit}
 .sr.n{opacity:.55}
 details{margin-bottom:8px}
 details summary{cursor:pointer;color:#7a8fb0;padding:6px 2px}
+#fab{position:fixed;right:6px;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:6px}
+#fab button{padding:6px 8px;font-size:12px;line-height:1.2;text-align:center;opacity:.92;box-shadow:0 2px 8px #0008}
+#fab button small{display:block;font-size:10px;opacity:.7}
+#fab button[aria-pressed="true"]{background:#0e4a63;border-color:var(--cy);color:#fff}
+#fab button[aria-pressed="true"] small::after{content:" ✓"}
 </style>
 </head>
 <body>
+<div id="fab" aria-label="สลับการเลื่อน">
+<button id="fbM" type="button" aria-pressed="false">กราฟหลัก<small>เลื่อน/ซูม</small></button>
+<button id="fbO" type="button" aria-pressed="false">Pending<small>เลื่อน/ซูม</small></button>
+<button id="fbP" type="button" aria-pressed="false">Position<small>เลื่อน/ซูม</small></button>
+</div>
 <main>
 <div class="top">
   <div class="brand"><b>Orderbook <i>( Aofxau )</i></b><span>ORDER BOOK · LIQUIDITY · SMART TRADING</span></div>
@@ -320,17 +330,24 @@ document.querySelectorAll("[data-tf]").forEach(b=>b.onclick=()=>setTf(+b.dataset
 $("mt5b").onclick=()=>{const v=parseFloat($("mt5").value);if(!isFinite(v)||lastRaw==null)return;offs[sel.value]=v-lastRaw;saveOffs();refresh(false)};
 $("mt5c").onclick=()=>{delete offs[sel.value];saveOffs();$("mt5").value="";refresh(false)};
 $("zi").onclick=()=>setZ(1.5);$("zo").onclick=()=>setZ(1/1.5);$("zr").onclick=()=>{z=1;off=0;draw()};
-let drag=null,ctl="web";
+let drag=null;
 const svgs=[$("svg"),$("svgO"),$("svgP")];
-function setCtl(m){ctl=m;drag=null;$("cWeb").setAttribute("aria-pressed",m==="web");$("cChart").setAttribute("aria-pressed",m==="chart");svgs.forEach(s=>{s.style.touchAction=m==="chart"?"none":"pan-y";s.style.cursor=m==="chart"?"crosshair":"default"});if(m==="web")$("ch").innerHTML=""}
+const act={svg:false,svgO:false,svgP:false};
+const FB={svg:"fbM",svgO:"fbO",svgP:"fbP"};
+function applyAct(){svgs.forEach(sv=>{const on=act[sv.id];sv.style.touchAction=on?"none":"pan-y";sv.style.cursor=on?"crosshair":"default";if(!on&&sv.id==="svg")$("ch").innerHTML=""});
+  for(const k in FB)$(FB[k]).setAttribute("aria-pressed",act[k]);
+  const all=svgs.every(sv=>act[sv.id]),none=svgs.every(sv=>!act[sv.id]);
+  $("cChart").setAttribute("aria-pressed",all);$("cWeb").setAttribute("aria-pressed",none);drag=null}
+function setCtl(m){svgs.forEach(sv=>act[sv.id]=m==="chart");applyAct()}
+for(const k in FB)$(FB[k]).onclick=()=>{act[k]=!act[k];applyAct()};
 $("cWeb").onclick=()=>setCtl("web");$("cChart").onclick=()=>setCtl("chart");setCtl("web");
 svgs.forEach(sv=>{
   const sy=e=>{const r=sv.getBoundingClientRect();return(e.clientY-r.top)*sv.viewBox.baseVal.height/r.height};
-  sv.addEventListener("wheel",e=>{if(ctl!=="chart")return;e.preventDefault();setZ(e.deltaY<0?1.15:1/1.15)},{passive:false});
-  sv.addEventListener("pointerdown",e=>{if(ctl!=="chart")return;drag=sy(e);sv.setPointerCapture(e.pointerId)});
+  sv.addEventListener("wheel",e=>{if(!act[sv.id])return;e.preventDefault();setZ(e.deltaY<0?1.15:1/1.15)},{passive:false});
+  sv.addEventListener("pointerdown",e=>{if(!act[sv.id])return;drag=sy(e);sv.setPointerCapture(e.pointerId)});
   sv.addEventListener("pointerup",()=>{drag=null});
   sv.addEventListener("pointermove",e=>{
-    if(ctl!=="chart")return;
+    if(!act[sv.id])return;
     const v=sy(e);
     if(drag!==null&&e.buttons){const[lo,hi]=view();off+=(v-drag)*(hi-lo)/(bot-yTop);drag=v;draw()}
     if(sv.id!=="svg")return;
