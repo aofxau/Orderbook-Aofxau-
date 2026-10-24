@@ -62,7 +62,7 @@ details summary{cursor:pointer;color:#7a8fb0;padding:6px 2px}
   <div class="brand"><b>Orderbook <i>( Aofxau )</i></b><span>ORDER BOOK · LIQUIDITY · SMART TRADING</span></div>
   <select id="sym" aria-label="เลือกสินทรัพย์"></select>
   <span class="seg" role="group" aria-label="ไทม์เฟรม"><button data-tf="1" aria-pressed="false">M1</button><button data-tf="5" aria-pressed="false">M5</button><button data-tf="30" aria-pressed="true">M30</button><button data-tf="60" aria-pressed="false">H1</button><button data-tf="240" aria-pressed="false">H4</button></span>
-  <span class="live" id="live" role="status">Demo</span>
+  <span class="live" id="live" role="status">Demo</span><button id="rf" type="button" style="margin-left:6px">⟳ รีเฟรช</button>
 </div>
 <div class="bar">
   <select id="tz" aria-label="เขตเวลา"><option value="7">เวลาไทย (UTC+7)</option><option value="3">เวลา MT5 (UTC+3 · ช้ากว่าไทย 4 ชม.)</option><option value="2">เวลา MT5 (UTC+2 · ช้ากว่าไทย 5 ชม.)</option><option value="0">UTC</option></select>
@@ -307,6 +307,14 @@ function setMode(m){mode=m;$("mAll").setAttribute("aria-pressed",m==="all");$("m
 function setTf(m){tfM=m;document.querySelectorAll("[data-tf]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tf===m));refresh(true)}
 $("tz").onchange=()=>{const T=selT();tzH=parseFloat($("tz").value);try{localStorage.setItem("tzH",String(tzH))}catch(e){}if(!isNaN(T))setInputs(T);refresh(false)};
 sel.onchange=()=>refresh(true);$("dt").onchange=$("tm").onchange=()=>refresh(true);
+let curSlot=Math.floor(Date.now()/SL)*SL,tickN=0;
+async function reload(){const b=$("rf");b.disabled=true;b.textContent="กำลังโหลด...";const ns=Math.floor(Date.now()/SL)*SL;if(selT()===curSlot||isNaN(selT())){setInputs(ns)}curSlot=ns;try{await refresh(false)}finally{b.disabled=false;b.textContent="⟳ รีเฟรช"}}
+$("rf").onclick=reload;
+setInterval(()=>{tickN++;const ns=Math.floor(Date.now()/SL)*SL;const following=selT()===curSlot;
+  if(ns!==curSlot){if(following)setInputs(ns);curSlot=ns;refresh(false);tickN=0}
+  else if(following&&tickN>=4){tickN=0;refresh(false)}
+},15000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){const ns=Math.floor(Date.now()/SL)*SL;if(ns!==curSlot){if(selT()===curSlot)setInputs(ns);curSlot=ns}refresh(false)}});
 $("mAll").onclick=()=>setMode("all");$("mNet").onclick=()=>setMode("net");
 document.querySelectorAll("[data-tf]").forEach(b=>b.onclick=()=>setTf(+b.dataset.tf));
 $("mt5b").onclick=()=>{const v=parseFloat($("mt5").value);if(!isFinite(v)||lastRaw==null)return;offs[sel.value]=v-lastRaw;saveOffs();refresh(false)};
