@@ -180,7 +180,7 @@ for (const [sym, urls] of Object.entries(BOOKS)) {
       const bids = (d.bids || []).map(([p, q]) => [+p, +q]), asks = (d.asks || []).map(([p, q]) => [+p, +q]);
       if (!bids.length || !asks.length) { bookInfo[sym] = `${label}: empty`; continue; }
       const mid = (bids[0][0] + asks[0][0]) / 2;
-      const N = 50;
+      const N = 100;
       // ความกว้างช่วงราคา: ครอบคลุมออเดอร์ 90% ของแต่ละฝั่ง (ตัดออเดอร์ไกลๆ ที่โผล่มาประปรายทิ้ง)
       const reach = (arr, sign) => {
         const tot = arr.reduce((t, [p, q]) => t + p * q, 0); let c = 0;
@@ -199,7 +199,7 @@ for (const [sym, urls] of Object.entries(BOOKS)) {
       fs.mkdirSync("data/book", { recursive: true });
       const arr = readJson(file, []).filter((x) => x.ts !== ts);
       arr.push({ ts, mid, w, src: label, bins: bins.map((x) => ({ p: +x.p.toFixed(6), b: Math.round(x.b), s: Math.round(x.s) })) });
-      fs.writeFileSync(file, JSON.stringify(arr.slice(-96)));
+      fs.writeFileSync(file, JSON.stringify(arr.slice(-72)));
       bookInfo[sym] = `${label}: ok`;
       break;
     } catch (e) {
