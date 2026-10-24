@@ -100,9 +100,25 @@ async function loadSent(){
     if(best&&typeof best.long==="number"&&typeof best.short==="number")sent={long:best.long,short:best.short};
   }catch(e){}
 }
+let realBook=false;
+async function applyBook(T){
+  try{
+    const r=await fetch("data/book/"+sel.value+".json",{cache:"no-cache"});
+    if(!r.ok)return;
+    const arr=await r.json();
+    let best=null;
+    for(const x of arr){if(x.ts<=T&&T-x.ts<=6*3600000&&(!best||x.ts>best.ts))best=x}
+    if(!best||!best.bins||!best.bins.length)return;
+    const sh=D.cur-best.mid; // ชดเชยส่วนต่างราคาระหว่างโบรกกับตลาดแหล่งข้อมูล
+    if(Math.abs(sh)/D.cur>0.02)return;
+    const lv=best.bins.map(b=>({price:b.p+sh,buy:b.b,sell:b.s}));
+    const all=D.s.concat(lv.map(l=>l.price));
+    D.lv=lv;D.step=best.w;D.mn=Math.min(...all);D.mx=Math.max(...all);D.pl=null;realBook=true;
+  }catch(e){}
+}
 let realPx=false;
 async function build(){
-  live=false;realPx=false;
+  live=false;realPx=false;realBook=false;
   const t=new Date($("dt").value+"T"+($("tm").value||"00:00")).getTime();
   try{
     const r=await fetch("data/prices/"+sel.value+".json",{cache:"no-cache"});
@@ -111,7 +127,7 @@ async function build(){
       const T=isNaN(t)?Date.now():t;
       let cs=arr.filter(x=>typeof x.c==="number"&&x.t+SL<=T).slice(-96);
       if(cs.length){const md=cs.map(x=>x.c).sort((a,b)=>a-b)[cs.length>>1];cs=cs.filter(x=>Math.abs(x.c-md)/md<0.25)}
-      if(cs.length>=10){mock(cs.map(x=>x.c));realPx=true;return}
+      if(cs.length>=10){mock(cs.map(x=>x.c));realPx=true;await applyBook(T);return}
     }
   }catch(e){}
   mock();
@@ -165,7 +181,7 @@ function stats(){
   const row=(t,a,b,la,lb)=>`<div class="row"><p><span>${t}</span></p><div class="track"><i style="width:${a}%;background:var(--buy)"></i><i style="width:${b}%;background:var(--sell)"></i></div><p style="margin-top:4px;color:var(--mu)"><span>${la} ${pc(a)}</span><span>${lb} ${pc(b)}</span></p></div>`;
   $("stats").innerHTML=`<h2>${sel.value} · สถิติ</h2>`+row("ออเดอร์ที่รออยู่ ใต้/เหนือราคา",da/(da+ua)*100,ua/(da+ua)*100,"ใต้ราคา","เหนือราคา")+row("สัดส่วนออเดอร์ buy / sell",tb/(tb+ts)*100,ts/(tb+ts)*100,"Buy","Sell")+(sent?row("ลูกค้า IG ที่ถือ long / short",sent.long,sent.short,"Long","Short"):pl==null?"":row("โพสิชันที่เปิดอยู่ long / short",pl,100-pl,"Long","Short"))+`<div class="leg"><span><b style="background:var(--buy)"></b>ฝั่งซื้อ</span><span><b style="background:var(--sell)"></b>ฝั่งขาย</span></div>`;
 }
-async function refresh(reset){if(reset){z=1;off=0}await build();await loadSent();draw();stats();$("src").textContent="เส้นราคา: "+(realPx?"ข้อมูลจริงจาก IG":"ข้อมูลจำลอง (ยังไม่มีราคาจริงของช่วงนี้)")+" · แท่งออเดอร์: ข้อมูลจำลอง"+" · long/short: "+(sent?"ข้อมูลจริงจาก IG":"ข้อมูลจำลอง")}
+async function refresh(reset){if(reset){z=1;off=0}await build();await loadSent();draw();stats();$("src").textContent="เส้นราคา: "+(realPx?"ข้อมูลจริงจาก IG":"ข้อมูลจำลอง (ยังไม่มีราคาจริงของช่วงนี้)")+" · แท่งออเดอร์: "+(realBook?"ข้อมูลจริง (ออเดอร์ที่ตั้งรอใน Binance)":"ข้อมูลจำลอง")+" · long/short: "+(sent?"ข้อมูลจริงจาก IG":"ข้อมูลจำลอง")}
 function setZ(f){z=Math.min(12,Math.max(1,z*f));if(z===1)off=0;draw()}
 function setMode(m){mode=m;$("mAll").setAttribute("aria-pressed",m==="all");$("mNet").setAttribute("aria-pressed",m==="net");draw()}
 sel.onchange=()=>refresh(true);$("dt").onchange=$("tm").onchange=()=>refresh(true);

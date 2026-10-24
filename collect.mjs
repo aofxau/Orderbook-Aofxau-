@@ -162,9 +162,49 @@ for (const [sym, e] of Object.entries(epics)) {
   await sleep(2500);
 }
 
+
+// ---------- 4) ออเดอร์บุ๊คจริง (ทอง/เงิน) จากตลาดสาธารณะของ Binance ไม่ต้องสมัคร ----------
+// แท่งแดง = ออเดอร์ขายที่ตั้งรออยู่เหนือราคา, แท่งน้ำเงิน = ออเดอร์ซื้อที่ตั้งรออยู่ใต้ราคา
+const BOOKS = {
+  XAUUSD: [["https://fapi.binance.com/fapi/v1/depth?symbol=XAUUSDT&limit=1000", "futures XAUUSDT"],
+           ["https://data-api.binance.vision/api/v3/depth?symbol=PAXGUSDT&limit=5000", "spot PAXGUSDT"]],
+  XAGUSD: [["https://fapi.binance.com/fapi/v1/depth?symbol=XAGUSDT&limit=1000", "futures XAGUSDT"]],
+};
+const bookInfo = {};
+for (const [sym, urls] of Object.entries(BOOKS)) {
+  for (const [url, label] of urls) {
+    try {
+      const r = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!r.ok) { bookInfo[sym] = `${label}: HTTP ${r.status}`; continue; }
+      const d = await r.json();
+      const bids = (d.bids || []).map(([p, q]) => [+p, +q]), asks = (d.asks || []).map(([p, q]) => [+p, +q]);
+      if (!bids.length || !asks.length) { bookInfo[sym] = `${label}: empty`; continue; }
+      const mid = (bids[0][0] + asks[0][0]) / 2;
+      const N = 40;
+      const span = Math.max(mid - bids[bids.length - 1][0], asks[asks.length - 1][0] - mid);
+      const w = span / N;
+      if (!(w > 0)) { bookInfo[sym] = `${label}: bad span`; continue; }
+      const bins = [];
+      for (let i = N - 1; i >= 0; i--) bins.push({ p: mid + (i + 0.5) * w, b: 0, s: 0 }); // เหนือราคา (sell)
+      for (let i = 0; i < N; i++) bins.push({ p: mid - (i + 0.5) * w, b: 0, s: 0 }); // ใต้ราคา (buy)
+      for (const [p, q] of asks) { const i = Math.floor((p - mid) / w); if (i >= 0 && i < N) bins[N - 1 - i].s += q * p; }
+      for (const [p, q] of bids) { const i = Math.floor((mid - p) / w); if (i >= 0 && i < N) bins[N + i].b += q * p; }
+      const file = `data/book/${sym}.json`;
+      fs.mkdirSync("data/book", { recursive: true });
+      const arr = readJson(file, []).filter((x) => x.ts !== ts);
+      arr.push({ ts, mid, w, src: label, bins: bins.map((x) => ({ p: +x.p.toFixed(6), b: Math.round(x.b), s: Math.round(x.s) })) });
+      fs.writeFileSync(file, JSON.stringify(arr.slice(-144)));
+      bookInfo[sym] = `${label}: ok`;
+      break;
+    } catch (e) {
+      bookInfo[sym] = `${label}: ${e.message}`;
+    }
+  }
+}
+console.log("book", JSON.stringify(bookInfo));
 fs.writeFileSync("data/epics.json", JSON.stringify(epics, null, 1));
 fs.writeFileSync("data/index.json", JSON.stringify({
-  updated: Date.now(), symbols: savedSent, prices: savedPrices, allowance, priceErrors: priceErrors.slice(0, 5),
+  updated: Date.now(), symbols: savedSent, prices: savedPrices, allowance, priceErrors: priceErrors.slice(0, 5), book: bookInfo,
 }));
 console.log("sentiment", savedSent.length, "prices", savedPrices.length, "allowance", JSON.stringify(allowance), "errors", priceErrors.length);
 for (const e of priceErrors.slice(0, 5)) console.warn(e);
