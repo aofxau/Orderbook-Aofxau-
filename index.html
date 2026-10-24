@@ -112,7 +112,9 @@ async function applyBook(T){
     const sh=D.cur-best.mid; // ชดเชยส่วนต่างราคาระหว่างโบรกกับตลาดแหล่งข้อมูล
     if(Math.abs(sh)/D.cur>0.02)return;
     const lv=best.bins.map(b=>({price:b.p+sh,buy:b.b,sell:b.s}));
-    const all=D.s.concat(lv.map(l=>l.price));
+    const sMin=Math.min(...D.s),sMax=Math.max(...D.s),R=Math.max(sMax-sMin,best.w*4);
+    const near=lv.filter(l=>l.price>=sMin-R*.6&&l.price<=sMax+R*.6);
+    const all=D.s.concat(near.map(l=>l.price));
     D.lv=lv;D.step=best.w;D.mn=Math.min(...all);D.mx=Math.max(...all);D.pl=null;realBook=true;
   }catch(e){}
 }

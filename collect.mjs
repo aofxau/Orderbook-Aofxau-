@@ -181,7 +181,13 @@ for (const [sym, urls] of Object.entries(BOOKS)) {
       if (!bids.length || !asks.length) { bookInfo[sym] = `${label}: empty`; continue; }
       const mid = (bids[0][0] + asks[0][0]) / 2;
       const N = 40;
-      const span = Math.max(mid - bids[bids.length - 1][0], asks[asks.length - 1][0] - mid);
+      // ความกว้างช่วงราคา: ครอบคลุมออเดอร์ 90% ของแต่ละฝั่ง (ตัดออเดอร์ไกลๆ ที่โผล่มาประปรายทิ้ง)
+      const reach = (arr, sign) => {
+        const tot = arr.reduce((t, [p, q]) => t + p * q, 0); let c = 0;
+        for (const [p, q] of arr) { c += p * q; if (c >= tot * 0.9) return Math.abs(p - mid); }
+        return Math.abs(arr[arr.length - 1][0] - mid);
+      };
+      const span = Math.max(reach(bids), reach(asks));
       const w = span / N;
       if (!(w > 0)) { bookInfo[sym] = `${label}: bad span`; continue; }
       const bins = [];
