@@ -140,17 +140,17 @@ for (const [sym, e] of Object.entries(epics)) {
     if (d.metadata?.allowance) {
       allowance = { remaining: d.metadata.allowance.remainingAllowance, total: d.metadata.allowance.totalAllowance, resetInSec: d.metadata.allowance.allowanceExpiry };
     }
-    const map = new Map(old.map((x) => [x.t, x.c]));
+    const map = new Map(old.map((x) => [x.t, x]));
+    const mid = (o) => (o && o.bid != null && o.ask != null ? (o.bid + o.ask) / 2 : o && o.lastTraded != null ? o.lastTraded : null);
     for (const p of d.prices || []) {
-      const cp = p.closePrice || {};
-      const bid = cp.bid, ask = cp.ask;
-      const close = bid != null && ask != null ? (bid + ask) / 2 : cp.lastTraded;
+      const close = mid(p.closePrice);
       if (close == null) continue;
+      const open = mid(p.openPrice) ?? close, high = mid(p.highPrice) ?? close, low = mid(p.lowPrice) ?? close;
       const raw = p.snapshotTimeUTC || p.snapshotTime;
       const t = Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(raw) ? raw : raw.replace(/\//g, "-").replace(" ", "T") + "Z");
-      if (!Number.isNaN(t)) map.set(t, close);
+      if (!Number.isNaN(t)) map.set(t, { t, o: open, h: Math.max(high, open, close), l: Math.min(low, open, close), c: close });
     }
-    const arr = [...map.entries()].sort((a, b) => a[0] - b[0]).slice(-KEEP_PRICES).map(([t, c]) => ({ t, c }));
+    const arr = [...map.values()].sort((a, b) => a.t - b.t).slice(-KEEP_PRICES);
     const med = arr.map((x) => x.c).sort((a, b) => a - b)[Math.floor(arr.length / 2)];
     for (let i = arr.length - 1; i >= 0; i--) if (med && Math.abs(arr[i].c - med) / med > 0.25) arr.splice(i, 1);
     fs.writeFileSync(file, JSON.stringify(arr));
@@ -180,14 +180,14 @@ for (const [sym, urls] of Object.entries(BOOKS)) {
       const bids = (d.bids || []).map(([p, q]) => [+p, +q]), asks = (d.asks || []).map(([p, q]) => [+p, +q]);
       if (!bids.length || !asks.length) { bookInfo[sym] = `${label}: empty`; continue; }
       const mid = (bids[0][0] + asks[0][0]) / 2;
-      const N = 40;
+      const N = 50;
       // ความกว้างช่วงราคา: ครอบคลุมออเดอร์ 90% ของแต่ละฝั่ง (ตัดออเดอร์ไกลๆ ที่โผล่มาประปรายทิ้ง)
       const reach = (arr, sign) => {
         const tot = arr.reduce((t, [p, q]) => t + p * q, 0); let c = 0;
         for (const [p, q] of arr) { c += p * q; if (c >= tot * 0.9) return Math.abs(p - mid); }
         return Math.abs(arr[arr.length - 1][0] - mid);
       };
-      const span = Math.max(reach(bids), reach(asks));
+      const span = Math.min(mid * 0.01, Math.max(reach(bids), reach(asks))); // ไม่เกิน ±1% ของราคา ให้ละเอียดพอสำหรับ M5
       const w = span / N;
       if (!(w > 0)) { bookInfo[sym] = `${label}: bad span`; continue; }
       const bins = [];
@@ -199,7 +199,7 @@ for (const [sym, urls] of Object.entries(BOOKS)) {
       fs.mkdirSync("data/book", { recursive: true });
       const arr = readJson(file, []).filter((x) => x.ts !== ts);
       arr.push({ ts, mid, w, src: label, bins: bins.map((x) => ({ p: +x.p.toFixed(6), b: Math.round(x.b), s: Math.round(x.s) })) });
-      fs.writeFileSync(file, JSON.stringify(arr.slice(-144)));
+      fs.writeFileSync(file, JSON.stringify(arr.slice(-96)));
       bookInfo[sym] = `${label}: ok`;
       break;
     } catch (e) {
@@ -208,9 +208,42 @@ for (const [sym, urls] of Object.entries(BOOKS)) {
   }
 }
 console.log("book", JSON.stringify(bookInfo));
+
+// ---------- 5) แท่งเทียน M1 / M5 ของทอง-เงินจาก Binance (ไม่ใช้โควตา IG) ----------
+const KL = { XAUUSD: ["XAUUSDT", "PAXGUSDT"], XAGUSD: ["XAGUSDT", null] };
+const KEEP_KL = { "1m": 3000, "5m": 2000 };
+const klInfo = {};
+fs.mkdirSync("data/klines", { recursive: true });
+for (const [sym, [fs1, sp1]] of Object.entries(KL)) {
+  for (const iv of ["1m", "5m"]) {
+    const urls = [`https://fapi.binance.com/fapi/v1/klines?symbol=${fs1}&interval=${iv}&limit=1000`];
+    if (sp1) urls.push(`https://data-api.binance.vision/api/v3/klines?symbol=${sp1}&interval=${iv}&limit=1000`);
+    let done = false;
+    for (const url of urls) {
+      try {
+        const r = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!r.ok) { klInfo[sym + iv] = `HTTP ${r.status}`; continue; }
+        const rows = await r.json();
+        if (!Array.isArray(rows) || !rows.length) { klInfo[sym + iv] = "empty"; continue; }
+        const file = `data/klines/${sym}_${iv}.json`;
+        const map = new Map(readJson(file, []).map((x) => [x.t, x]));
+        for (const k of rows) map.set(+k[0], { t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4] });
+        const arr = [...map.values()].sort((a, b) => a.t - b.t).slice(-KEEP_KL[iv]);
+        fs.writeFileSync(file, JSON.stringify(arr));
+        klInfo[sym + iv] = "ok " + arr.length;
+        done = true;
+        break;
+      } catch (e) {
+        klInfo[sym + iv] = e.message;
+      }
+    }
+    if (!done && !klInfo[sym + iv]) klInfo[sym + iv] = "fail";
+  }
+}
+console.log("klines", JSON.stringify(klInfo));
 fs.writeFileSync("data/epics.json", JSON.stringify(epics, null, 1));
 fs.writeFileSync("data/index.json", JSON.stringify({
-  updated: Date.now(), symbols: savedSent, prices: savedPrices, allowance, priceErrors: priceErrors.slice(0, 5), book: bookInfo,
+  updated: Date.now(), symbols: savedSent, prices: savedPrices, allowance, priceErrors: priceErrors.slice(0, 5), book: bookInfo, klines: klInfo,
 }));
 console.log("sentiment", savedSent.length, "prices", savedPrices.length, "allowance", JSON.stringify(allowance), "errors", priceErrors.length);
 for (const e of priceErrors.slice(0, 5)) console.warn(e);
