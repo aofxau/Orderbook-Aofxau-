@@ -130,7 +130,8 @@ const priceErrors = [];
 for (const [sym, e] of Object.entries(epics)) {
   if (!e.epic) continue;
   const file = `data/prices/${sym}.json`;
-  const old = readJson(file, []);
+  let old = readJson(file, []);
+  if (e.pxEpic !== e.epic) { old = []; e.pxEpic = e.epic; } // เปลี่ยน epic แล้ว ทิ้งราคาเก่าที่อาจเป็นคนละสินทรัพย์
   if (!(force || hourly || old.length < 20)) continue;
   if (allowance && allowance.remaining != null && allowance.remaining < 150) { priceErrors.push("โควตาใกล้หมด"); break; }
   const max = old.length < 48 ? 48 : 3;
@@ -150,6 +151,8 @@ for (const [sym, e] of Object.entries(epics)) {
       if (!Number.isNaN(t)) map.set(t, close);
     }
     const arr = [...map.entries()].sort((a, b) => a[0] - b[0]).slice(-KEEP_PRICES).map(([t, c]) => ({ t, c }));
+    const med = arr.map((x) => x.c).sort((a, b) => a - b)[Math.floor(arr.length / 2)];
+    for (let i = arr.length - 1; i >= 0; i--) if (med && Math.abs(arr[i].c - med) / med > 0.25) arr.splice(i, 1);
     fs.writeFileSync(file, JSON.stringify(arr));
     savedPrices.push(sym);
   } catch (err) {
@@ -159,6 +162,7 @@ for (const [sym, e] of Object.entries(epics)) {
   await sleep(2500);
 }
 
+fs.writeFileSync("data/epics.json", JSON.stringify(epics, null, 1));
 fs.writeFileSync("data/index.json", JSON.stringify({
   updated: Date.now(), symbols: savedSent, prices: savedPrices, allowance, priceErrors: priceErrors.slice(0, 5),
 }));

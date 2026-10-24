@@ -108,7 +108,8 @@ async function build(){
     if(r.ok){
       const arr=await r.json();
       const T=isNaN(t)?Date.now():t;
-      const cs=arr.filter(x=>typeof x.c==="number"&&x.t+SL<=T).slice(-96);
+      let cs=arr.filter(x=>typeof x.c==="number"&&x.t+SL<=T).slice(-96);
+      if(cs.length){const md=cs.map(x=>x.c).sort((a,b)=>a-b)[cs.length>>1];cs=cs.filter(x=>Math.abs(x.c-md)/md<0.25)}
       if(cs.length>=10){mock(cs.map(x=>x.c));realPx=true;return}
     }
   }catch(e){}
