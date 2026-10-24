@@ -70,5 +70,13 @@
   "epic": "CC.D.CL.BMU.IP",
   "name": "Oil - US Crude ($1)",
   "marketId": "CL"
+ },
+ "XAUUSD": {
+  "epic": "CS.D.IN_GOLD.MFI.IP",
+  "name": "Spot Gold"
+ },
+ "XAGUSD": {
+  "epic": "CS.D.CFDSILVER.BMU.IP",
+  "name": "Spot Silver ($1)"
  }
 }
