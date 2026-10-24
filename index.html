@@ -50,6 +50,11 @@ svg text{fill:var(--mu);font-size:11px;font-family:inherit}
 <span class="seg" role="group" aria-label="ซูม"><button id="zo" aria-label="ซูมออก">−</button><button id="zi" aria-label="ซูมเข้า">+</button><button id="zr">รีเซ็ตซูม</button></span>
 </div>
 <p class="note" id="src" style="margin:0 0 8px" role="status"></p>
+<div class="panel" style="margin-bottom:12px;padding:8px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;gap:8px"><b style="font-size:14px">กราฟ TradingView · M5</b><a id="tvl" target="_blank" rel="noopener" style="font-size:12px;color:var(--buy)">เปิดใน TradingView</a></div>
+<div id="tv" style="height:460px;width:100%"></div>
+<p class="note" style="margin:6px 0 0">กราฟนี้เป็นวิดเจ็ตของ TradingView แยกจากกราฟออเดอร์ด้านล่าง ราคาอาจต่างจาก IG เล็กน้อย</p>
+</div>
 <div class="grid">
 <div class="panel chart"><svg id="svg" viewBox="0 0 820 440" role="img" aria-label="กราฟราคาและออเดอร์บุ๊ค"><defs><clipPath id="cp"><rect x="0" y="12" width="820" height="416"/></clipPath></defs><g id="main" clip-path="url(#cp)"></g><g id="ch" clip-path="url(#cp)"></g></svg></div>
 <div class="panel st" id="stats"></div>
@@ -136,6 +141,21 @@ async function build(){
 }
 const W=820,yTop=12,bot=428,x0=10,x1=450,b0=470,b1=760;
 function view(){const m=(D.mn+D.mx)/2,R=(D.mx-D.mn)*1.06/z;return[m+off-R/2,m+off+R/2]}
+const TVS={EURUSD:"FX:EURUSD",GBPUSD:"FX:GBPUSD",USDJPY:"FX:USDJPY",USDCHF:"FX:USDCHF",AUDUSD:"FX:AUDUSD",USDCAD:"FX:USDCAD",NZDUSD:"FX:NZDUSD",EURGBP:"FX:EURGBP",EURJPY:"FX:EURJPY",GBPJPY:"FX:GBPJPY",AUDJPY:"FX:AUDJPY",EURCHF:"FX:EURCHF",XAUUSD:"OANDA:XAUUSD",XAGUSD:"OANDA:XAGUSD",NAS100:"OANDA:NAS100USD",SPX500:"OANDA:SPX500USD",US30:"OANDA:US30USD",DE40:"OANDA:DE30EUR",USOIL:"TVC:USOIL"};
+function tv(){
+  const box=$("tv"),sym=TVS[sel.value]||"OANDA:"+sel.value;
+  $("tvl").href="https://www.tradingview.com/chart/?symbol="+encodeURIComponent(sym)+"&interval=5";
+  if(box.dataset.sym===sym)return;
+  box.dataset.sym=sym;box.innerHTML="";
+  const dark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const w=document.createElement("div");w.className="tradingview-widget-container";w.style.cssText="height:100%;width:100%";
+  const inner=document.createElement("div");inner.className="tradingview-widget-container__widget";inner.style.cssText="height:100%;width:100%";
+  w.appendChild(inner);
+  const sc=document.createElement("script");sc.async=true;sc.type="text/javascript";
+  sc.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+  sc.text=JSON.stringify({autosize:true,symbol:sym,interval:"5",timezone:"Asia/Bangkok",theme:dark?"dark":"light",style:"1",locale:"th_TH",allow_symbol_change:false,hide_side_toolbar:true,save_image:false,support_host:"https://www.tradingview.com"});
+  w.appendChild(sc);box.appendChild(w);
+}
 const CX=385,CHW=365;
 function draw(){
   const {c,s,cur,lv,step}=D,[lo,hi]=view(),y=v=>bot-(v-lo)/(hi-lo)*(bot-yTop);
@@ -169,7 +189,7 @@ function stats(){
   const row=(t,a,b,la,lb)=>`<div class="row"><p><span>${t}</span></p><div class="track"><i style="width:${a}%;background:var(--buy)"></i><i style="width:${b}%;background:var(--sell)"></i></div><p style="margin-top:4px;color:var(--mu)"><span>${la} ${pc(a)}</span><span>${lb} ${pc(b)}</span></p></div>`;
   $("stats").innerHTML=`<h2>${sel.value} · สถิติ</h2>`+row("ออเดอร์ที่รออยู่ ใต้/เหนือราคา",da/(da+ua)*100,ua/(da+ua)*100,"ใต้ราคา","เหนือราคา")+row("สัดส่วนออเดอร์ buy / sell",tb/(tb+ts)*100,ts/(tb+ts)*100,"Buy","Sell")+(sent?row("ลูกค้า IG ที่ถือ long / short",sent.long,sent.short,"Long","Short"):pl==null?"":row("โพสิชันที่เปิดอยู่ long / short",pl,100-pl,"Long","Short"))+`<div class="leg"><span><b style="background:var(--bu)"></b>ฝั่งซื้อ</span><span><b style="background:var(--sl)"></b>ฝั่งขาย</span></div>`;
 }
-async function refresh(reset){if(reset){z=1;off=0}await build();await loadSent();draw();stats();$("src").textContent="เส้นราคา: "+(realPx?"ข้อมูลจริงจาก IG":"ข้อมูลจำลอง (ยังไม่มีราคาจริงของช่วงนี้)")+" · แท่งออเดอร์: "+(realBook?"ข้อมูลจริง (ออเดอร์ที่ตั้งรอใน Binance)":"ข้อมูลจำลอง")+" · long/short: "+(sent?"ข้อมูลจริงจาก IG":"ข้อมูลจำลอง")}
+async function refresh(reset){tv();if(reset){z=1;off=0}await build();await loadSent();draw();stats();$("src").textContent="เส้นราคา: "+(realPx?"ข้อมูลจริงจาก IG":"ข้อมูลจำลอง (ยังไม่มีราคาจริงของช่วงนี้)")+" · แท่งออเดอร์: "+(realBook?"ข้อมูลจริง (ออเดอร์ที่ตั้งรอใน Binance)":"ข้อมูลจำลอง")+" · long/short: "+(sent?"ข้อมูลจริงจาก IG":"ข้อมูลจำลอง")}
 function setZ(f){z=Math.min(12,Math.max(1,z*f));if(z===1)off=0;draw()}
 function setMode(m){mode=m;$("mAll").setAttribute("aria-pressed",m==="all");$("mNet").setAttribute("aria-pressed",m==="net");draw()}
 sel.onchange=()=>refresh(true);$("dt").onchange=$("tm").onchange=()=>refresh(true);
