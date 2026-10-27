@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
 <title>Orderbook ( Aofxau )</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600&display=swap">
 <style>
-:root{--bg:#0a1220;--bd:#e3e8ef;--tx:#1f2937;--mu:#6b7280;--rd:#ee7b74;--bl:#5aa6ee;--gr:#2e9e47;--up:#26a69a;--dn:#ef5350;--ink:#dbe7f7;--cy:#19c3e6;
+:root{--bg:#0a1220;--ctl:#10203a;--ln:var(--ln);--sel:#0b3a52;--mut2:#7a8fb0;--card:#111c30;--tx:#e5edf8;--mu:#94a3b8;--grid:#22314d;--axis:#3b4d6e;--panel:#0d1a2e;--rd:#ee7b74;--bl:#5aa6ee;--gr:#2e9e47;--up:#26a69a;--dn:#ef5350;--ink:#dbe7f7;--cy:#19c3e6;--lk:#38bdf8;--st:#cbd5e1;
 padding-top:env(safe-area-inset-top,0px)}
+:root[data-theme="light"]{--bg:#eef2f7;--ctl:#ffffff;--ln:#cbd5e1;--sel:#d8f1fa;--mut2:#64748b;--card:#ffffff;--tx:#1f2937;--mu:#6b7280;--grid:#eef1f5;--axis:#d1d5db;--panel:#ffffff;--ink:#0f172a;--cy:#0891b2;--lk:#0369a1;--st:#374151}
 *,*::before,*::after{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans Thai",system-ui,sans-serif;font-variant-numeric:tabular-nums;padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -16,25 +17,25 @@ main{max-width:1320px;margin:0 auto;padding:12px}
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .brand{display:flex;flex-direction:column;line-height:1.1;margin-right:6px}
 .brand b{font-size:19px;letter-spacing:.04em}.brand b i{font-style:normal;color:var(--cy)}
-.brand span{font-size:9px;letter-spacing:.18em;color:#7a8fb0}
-.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#7a8fb0;margin-left:auto}
-.live::before{content:"";width:8px;height:8px;border-radius:50%;background:#7a8fb0}
+.brand span{font-size:9px;letter-spacing:.18em;color:var(--mut2)}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mut2)}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mut2)}
 .live.on{color:#20c997}.live.on::before{background:#20c997;box-shadow:0 0 8px #20c997}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-select,input,button{font:inherit;color:var(--ink);background:#10203a;border:1px solid #1d3358;border-radius:8px;padding:7px 10px}
+select,input,button{font:inherit;color:var(--ink);background:var(--ctl);border:1px solid var(--ln);border-radius:8px;padding:7px 10px}
 button{cursor:pointer}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
-.seg{display:inline-flex;border:1px solid #1d3358;border-radius:8px;overflow:hidden;background:#10203a}
-.seg button{border:0;border-radius:0;background:transparent;padding:7px 12px;border-right:1px solid #1d3358}
+.seg{display:inline-flex;border:1px solid var(--ln);border-radius:8px;overflow:hidden;background:var(--ctl)}
+.seg button{border:0;border-radius:0;background:transparent;padding:7px 12px;border-right:1px solid var(--ln)}
 .seg button:last-child{border-right:0}
-.seg button[aria-pressed="true"]{background:#0b3a52;color:#fff;box-shadow:inset 0 0 0 1px var(--cy)}
-.note{font-size:12px;color:#7a8fb0;margin:6px 0 0}
+.seg button[aria-pressed="true"]{background:var(--sel);color:var(--ink);box-shadow:inset 0 0 0 1px var(--cy)}
+.note{font-size:12px;color:var(--mut2);margin:6px 0 0}
 .grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:8px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
 @media(max-width:1000px){.grid{grid-template-columns:1fr}}
 @media(max-width:700px){.grid2{grid-template-columns:1fr}}
-.card{background:#fff;color:var(--tx);border-radius:8px;padding:10px;min-width:0}
-.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px;font-weight:600;display:flex;justify-content:space-between;gap:8px;color:#374151}
+.card{background:var(--card);border:1px solid var(--ln);color:var(--tx);border-radius:8px;padding:10px;min-width:0}
+.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px;font-weight:600;display:flex;justify-content:space-between;gap:8px;color:var(--st)}
 .card h2 small{font-weight:400;color:var(--mu);font-size:11px;text-transform:none;letter-spacing:0}
 .hd{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px;font-size:12px;color:var(--mu)}
 .hd b{font-size:15px;color:var(--tx)}.hd .u{color:var(--up)}.hd .d{color:var(--dn)}
@@ -45,21 +46,32 @@ svg{display:block;width:100%;height:auto}
 .main svg{min-width:0}
 .hist svg{min-width:300px}
 svg text{fill:var(--mu);font-size:11px;font-family:inherit}
-.st h3{font-size:11px;letter-spacing:.06em;margin:8px 0 6px;color:#374151}
-.sr{position:relative;display:flex;justify-content:space-between;align-items:center;height:26px;margin:4px 0;padding:0 8px;border-radius:4px;font-size:12px;color:#1f2937;overflow:hidden}
+.st h3{font-size:11px;letter-spacing:.06em;margin:8px 0 6px;color:var(--st)}
+.sr{position:relative;display:flex;justify-content:space-between;align-items:center;height:26px;margin:4px 0;padding:0 8px;border-radius:4px;font-size:12px;color:var(--tx);overflow:hidden}
 .sr i{position:absolute;left:0;top:0;bottom:0;opacity:.35}
 .sr span{position:relative}
 .sr.b{border-left:3px solid var(--bl)}.sr.b i{background:var(--bl)}
 .sr.r{border-left:3px solid var(--rd)}.sr.r i{background:var(--rd)}
 .sr.n{opacity:.55}
 details{margin-bottom:8px}
-details summary{cursor:pointer;color:#7a8fb0;padding:6px 2px}
+details summary{cursor:pointer;color:var(--mut2);padding:6px 2px}
 #fab{position:fixed;right:6px;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:6px}
 #fab button{padding:6px 8px;font-size:12px;line-height:1.2;text-align:center;opacity:.92;box-shadow:0 2px 8px #0008}
 #fab button small{display:block;font-size:10px;opacity:.7}
-#fab button[aria-pressed="true"]{background:#0e4a63;border-color:var(--cy);color:#fff}
+#fab button{background:var(--ctl)}#fab button[aria-pressed="true"]{background:var(--sel);border-color:var(--cy);color:var(--ink)}
 #fab button[aria-pressed="true"] small::after{content:" ✓"}
 svg{direction:ltr}[dir=rtl] #fab{right:auto;left:6px}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+.tools a{font-size:13px;color:var(--lk);text-decoration:none;white-space:nowrap}
+.tools select{max-width:130px;padding:6px 8px}.tools button{padding:6px 10px}
+.panel{background:var(--panel);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld>span.l{font-size:11px;letter-spacing:.04em;color:var(--mut2);text-transform:uppercase}
+.inl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.panel details{margin:0}.panel details summary{padding:2px 0;font-size:13px}
+.panel details .seg{margin-top:6px}
+@media(max-width:520px){.row{gap:8px 12px}.tools{margin-left:0;width:100%}.panel{padding:8px 10px;gap:8px}.seg button{padding:7px 10px}}
 </style>
 </head>
 <body>
@@ -71,19 +83,28 @@ svg{direction:ltr}[dir=rtl] #fab{right:auto;left:6px}
 <main>
 <div class="top">
   <div class="brand"><b>Orderbook <i>( Aofxau )</i></b><span>ORDER BOOK · LIQUIDITY · SMART TRADING</span></div>
-  <select id="sym" aria-label="เลือกสินทรัพย์"></select>
-  <span class="seg" role="group" aria-label="ไทม์เฟรม"><button data-tf="1" aria-pressed="false">M1</button><button data-tf="5" aria-pressed="false">M5</button><button data-tf="30" aria-pressed="true">M30</button><button data-tf="60" aria-pressed="false">H1</button><button data-tf="240" aria-pressed="false">H4</button></span>
-  <span class="live" id="live" role="status">Demo</span><a href="guide.html" style="margin-left:6px;font-size:13px;color:var(--cy)">📖 Guide / คู่มือ</a><select id="lang" aria-label="Language" style="margin-left:6px;max-width:120px"></select><button id="rf" type="button" style="margin-left:6px" data-i18n="refresh" data-pre="⟳ "></button>
+  <div class="tools"><span class="live" id="live" role="status">Demo</span><a href="guide.html">📖 Guide / คู่มือ</a><select id="lang" aria-label="Language"></select><button id="th" type="button" aria-label="Theme">☀</button><button id="rf" type="button" data-i18n="refresh" data-pre="⟳ "></button></div>
 </div>
-<div class="bar">
-  <select id="tz" aria-label="เขตเวลา"><option value="7"></option><option value="3"></option><option value="2"></option><option value="0">UTC</option></select>
-  <input type="hidden" id="dt"><span class="seg" role="group" aria-label="Date"><select id="dd" aria-label="Day"></select><select id="dm" aria-label="Month"></select><select id="dy" aria-label="Year"></select></span>
-  <select id="tm" aria-label="เวลา"></select>
-  <span class="seg" role="group" aria-label="โหมดแท่ง"><button id="mAll" aria-pressed="true">All Metrics</button><button id="mNet" aria-pressed="false">Net</button></span>
-  <span class="seg" role="group" aria-label="ตัวควบคุม"><button id="cWeb" aria-pressed="true" data-i18n="pageScroll"></button><button id="cChart" aria-pressed="false" data-i18n="chartScroll"></button></span>
-  <span class="seg" role="group" aria-label="ปรับราคาให้ตรง MT5"><input type="number" id="mt5" step="any" inputmode="decimal" data-i18n-ph="mt5ph" style="width:170px;border:0;border-radius:0"><button id="mt5b" data-i18n="mt5b"></button><button id="mt5c" data-i18n="mt5c"></button></span>
-  <span class="seg" role="group" aria-label="ซูม"><button id="zo" aria-label="ซูมออก">−</button><button id="zi" aria-label="ซูมเข้า">+</button><button id="zr" data-i18n="zr"></button></span>
-</div>
+<section class="panel">
+  <div class="row">
+    <label class="fld"><span class="l" data-i18n="lSym"></span><select id="sym" aria-label="Asset"></select></label>
+    <div class="fld"><span class="l" data-i18n="lTf"></span><span class="seg" role="group" aria-label="Timeframe"><button data-tf="1" aria-pressed="false">M1</button><button data-tf="5" aria-pressed="true">M5</button><button data-tf="30" aria-pressed="false">M30</button><button data-tf="60" aria-pressed="false">H1</button><button data-tf="240" aria-pressed="false">H4</button></span></div>
+  </div>
+  <div class="row">
+    <div class="fld"><span class="l" data-i18n="lTime"></span><div class="inl">
+      <select id="tz" aria-label="Time zone"><option value="7"></option><option value="3"></option><option value="2"></option><option value="0">UTC</option></select>
+      <input type="hidden" id="dt"><span class="seg" role="group" aria-label="Date"><select id="dd" aria-label="Day"></select><select id="dm" aria-label="Month"></select><select id="dy" aria-label="Year"></select></span>
+      <select id="tm" aria-label="Time"></select></div></div>
+  </div>
+  <div class="row">
+    <div class="fld"><span class="l" data-i18n="lView"></span><span class="seg" role="group" aria-label="Mode"><button id="mAll" aria-pressed="true">All Metrics</button><button id="mNet" aria-pressed="false">Net</button></span></div>
+    <div class="fld"><span class="l" data-i18n="lCtl"></span><span class="seg" role="group" aria-label="Control"><button id="cWeb" aria-pressed="true" data-i18n="pageScroll"></button><button id="cChart" aria-pressed="false" data-i18n="chartScroll"></button></span></div>
+    <div class="fld"><span class="l">Zoom</span><span class="seg" role="group" aria-label="Zoom"><button id="zo" aria-label="Zoom out">−</button><button id="zi" aria-label="Zoom in">+</button><button id="zr" data-i18n="zr"></button></span></div>
+  </div>
+  <details><summary data-i18n="lMt5"></summary>
+    <span class="seg" role="group"><input type="number" id="mt5" step="any" inputmode="decimal" data-i18n-ph="mt5ph" style="width:170px;border:0;border-radius:0"><button id="mt5b" data-i18n="mt5b"></button><button id="mt5c" data-i18n="mt5c"></button></span>
+  </details>
+</section>
 <p class="note" id="src" style="margin:0 0 8px" role="status"></p>
 
 <div class="grid">
@@ -110,7 +131,7 @@ svg{direction:ltr}[dir=rtl] #fab{right:auto;left:6px}
 
 <details><summary data-i18n="tvSum"></summary>
   <div class="card" style="padding:8px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;gap:8px"><b style="font-size:13px">TradingView · M5</b><a id="tvl" target="_blank" rel="noopener" style="font-size:12px;color:#2563eb" data-i18n="tvOpen"></a></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;gap:8px"><b style="font-size:13px">TradingView · M5</b><a id="tvl" target="_blank" rel="noopener" style="font-size:12px;color:var(--lk)" data-i18n="tvOpen"></a></div>
     <div id="tv" style="height:460px;width:100%"></div>
   </div>
 </details>
@@ -156,6 +177,9 @@ pl:["Odśwież","Ładowanie...","Czas tajlandzki (UTC+7)","Czas MT5","Przewijaj 
 nl:["Vernieuwen","Laden...","Thaise tijd (UTC+7)","MT5-tijd","Pagina scrollen","Grafiek scrollen","Hoofdgrafiek","Verschuiven/zoom","Huidige MT5-prijs","Afstemmen","Wissen","Zoom resetten","TradingView-grafiek (M5) — openen om te vergelijken","Openen in TradingView","Geen beleggingsadvies. Gegevens worden elke 30 minuten bijgewerkt. Prijzen van IG · Sell/Buy Limit voor goud/zilver komen van openstaande orders op Binance · IG biedt geen pending order-/open positie-data per prijsniveau, dus gesimuleerd en geschaald zodat het totaal Long/Short overeenkomt met IG","Metalen","Indices","Energie","Gesimuleerd","Echte Limit · Stop: geen data","Echte Limit van Binance","Totaal = IG · verdeling gesimuleerd","Totaal gelijk aan IG · verdeling gesimuleerd","Geen data","Prijs","echte data van","gesimuleerd (geen echte prijs voor deze periode)","echte Limit (Binance)","gesimuleerd","echte Long/Short-totalen van IG (verdeling per prijs gesimuleerd)","prijs {v} aangepast om overeen te komen met MT5","{tf}-candles van Binance","{tf} alleen beschikbaar voor XAUUSD/XAGUSD (of data onvolledig); M30 getoond"],
 uk:["Оновити","Завантаження...","Час Таїланду (UTC+7)","Час MT5","Прокрутка сторінки","Прокрутка графіка","Основний графік","Зсув/масштаб","Поточна ціна MT5","Підігнати","Очистити","Скинути масштаб","Графік TradingView (M5) — відкрити для порівняння","Відкрити в TradingView","Не є інвестиційною порадою. Дані оновлюються кожні 30 хвилин. Ціни від IG · Sell/Buy Limit по золоту/сріблу беруться з відкладених ордерів Binance · IG не надає даних про відкладені ордери/відкриті позиції за рівнями цін, тому вони змодельовані, а загальний Long/Short приведено до даних IG","Метали","Індекси","Енергія","Модель","Реальні Limit · Stop: немає даних","Реальні Limit з Binance","Разом = IG · розподіл змодельовано","Разом як в IG · розподіл змодельовано","Немає даних","Ціна","реальні дані:","змодельовано (немає реальної ціни за період)","реальні Limit (Binance)","змодельовано","реальні суми Long/Short від IG (розподіл за ціною змодельовано)","ціну скориговано на {v} під MT5","свічки {tf} з Binance","{tf} доступний лише для XAUUSD/XAGUSD (або дані неповні); показано M30"]
 };
+KEYS.push("lSym","lTf","lTime","lView","lCtl","lMt5");
+const XT={"th": ["สินทรัพย์", "ไทม์เฟรม", "วันที่ / เวลา", "การแสดงผล", "การควบคุม", "ปรับราคาให้ตรง MT5"], "en": ["Asset", "Timeframe", "Date / Time", "Display", "Control", "Match MT5 price"], "zh": ["品种", "周期", "日期 / 时间", "显示", "操控", "对齐 MT5 价格"], "zh-TW": ["品種", "週期", "日期 / 時間", "顯示", "操控", "對齊 MT5 價格"], "es": ["Activo", "Marco temporal", "Fecha / Hora", "Visualización", "Control", "Ajustar al precio MT5"], "hi": ["एसेट", "टाइमफ़्रेम", "तारीख / समय", "डिस्प्ले", "नियंत्रण", "MT5 कीमत से मिलाएँ"], "ar": ["الأصل", "الإطار الزمني", "التاريخ / الوقت", "العرض", "التحكم", "مطابقة سعر MT5"], "bn": ["অ্যাসেট", "টাইমফ্রেম", "তারিখ / সময়", "প্রদর্শন", "নিয়ন্ত্রণ", "MT5 মূল্য মেলান"], "pt": ["Ativo", "Período", "Data / Hora", "Exibição", "Controle", "Ajustar ao preço MT5"], "ru": ["Актив", "Таймфрейм", "Дата / Время", "Отображение", "Управление", "Подогнать под цену MT5"], "ja": ["銘柄", "時間足", "日付 / 時刻", "表示", "操作", "MT5 価格に合わせる"], "de": ["Wert", "Zeitrahmen", "Datum / Zeit", "Anzeige", "Steuerung", "An MT5-Preis angleichen"], "fr": ["Actif", "Unité de temps", "Date / Heure", "Affichage", "Contrôle", "Ajuster au prix MT5"], "ko": ["종목", "시간대", "날짜 / 시간", "표시", "조작", "MT5 가격에 맞추기"], "id": ["Aset", "Timeframe", "Tanggal / Waktu", "Tampilan", "Kontrol", "Samakan harga MT5"], "ms": ["Aset", "Bingkai masa", "Tarikh / Masa", "Paparan", "Kawalan", "Padankan harga MT5"], "vi": ["Tài sản", "Khung thời gian", "Ngày / Giờ", "Hiển thị", "Điều khiển", "Khớp giá MT5"], "tr": ["Varlık", "Zaman dilimi", "Tarih / Saat", "Görünüm", "Kontrol", "MT5 fiyatına eşle"], "it": ["Asset", "Timeframe", "Data / Ora", "Visualizzazione", "Controllo", "Allinea al prezzo MT5"], "fa": ["دارایی", "تایم‌فریم", "تاریخ / زمان", "نمایش", "کنترل", "تطبیق با قیمت MT5"], "ur": ["اثاثہ", "ٹائم فریم", "تاریخ / وقت", "ڈسپلے", "کنٹرول", "MT5 قیمت سے ملائیں"], "pl": ["Instrument", "Interwał", "Data / Czas", "Widok", "Sterowanie", "Dopasuj do ceny MT5"], "nl": ["Instrument", "Tijdframe", "Datum / Tijd", "Weergave", "Besturing", "Afstemmen op MT5-prijs"], "uk": ["Актив", "Таймфрейм", "Дата / Час", "Відображення", "Керування", "Підігнати під ціну MT5"]};
+for(const k in XT)TR[k].push(...XT[k]);
 let LANG="th";
 try{const s=localStorage.getItem("lang");if(s&&TR[s])LANG=s}catch(e){}
 function t(k,p){const a=TR[LANG]||TR.en,i=KEYS.indexOf(k);let s=a[i]||TR.en[i]||k;if(p)for(const q in p)s=s.replace("{"+q+"}",p[q]);return s}
@@ -163,18 +187,31 @@ const LOC=()=>LANG==="zh"?"zh-CN":LANG;
 buildSel();
 // ---- date selects (always Gregorian / ค.ศ.) ----
 const mNames=()=>{const f=new Intl.DateTimeFormat(LOC()+"-u-ca-gregory-nu-latn",{month:"short",timeZone:"UTC"});return Array.from({length:12},(_,i)=>f.format(new Date(Date.UTC(2024,i,15))))};
-function buildDate(){const y0=new Date().getUTCFullYear(),dd=$("dd"),dm=$("dm"),dy=$("dy");
-  dd.innerHTML=Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join("");
-  dm.innerHTML=mNames().map((n,i)=>`<option value="${i+1}">${n}</option>`).join("");
-  dy.innerHTML=Array.from({length:6},(_,i)=>`<option value="${y0-i}">${y0-i}</option>`).join("");syncDate()}
-function syncDate(){const v=($("dt").value||"").split("-").map(Number);if(v.length<3||v.some(isNaN))return;const dy=$("dy");if(![...dy.options].some(o=>+o.value===v[0]))dy.add(new Option(v[0],v[0]));$("dd").value=v[2];$("dm").value=v[1];dy.value=v[0]}
-function readDate(){$("dt").value=$("dy").value+"-"+pad($("dm").value)+"-"+pad($("dd").value)}
+// ล่าสุด = รอบ 30 นาทีปัจจุบัน; ไม่แสดงอนาคต
+const latestL=()=>new Date(Math.floor(Date.now()/SL)*SL+tzH*3600000);
+function fillSel(el,vals,labels,keep){const old=keep!=null?String(keep):el.value;el.innerHTML=vals.map((v,i)=>`<option value="${v}">${labels?labels[i]:v}</option>`).join("");el.value=vals.map(String).includes(old)?old:String(vals[vals.length-1])}
+function rebuildDate(){
+  const L=latestL(),Ly=L.getUTCFullYear(),Lm=L.getUTCMonth()+1,Ld=L.getUTCDate();
+  const dy=$("dy"),dm=$("dm"),dd=$("dd"),tm=$("tm");
+  const ys=Array.from({length:6},(_,i)=>Ly-5+i);fillSel(dy,ys,null,dy.value||Ly);
+  const y=+dy.value,mn=mNames();
+  const ms=Array.from({length:y===Ly?Lm:12},(_,i)=>i+1);fillSel(dm,ms,ms.map(i=>mn[i-1]),dm.value||Lm);
+  const m=+dm.value,dim=new Date(Date.UTC(y,m,0)).getUTCDate(),maxD=(y===Ly&&m===Lm)?Ld:dim;
+  const ds=Array.from({length:maxD},(_,i)=>i+1);fillSel(dd,ds,null,dd.value||Ld);
+  const d=+dd.value,today=(y===Ly&&m===Lm&&d===Ld),maxM=today?L.getUTCHours()*60+L.getUTCMinutes():1410;
+  const ts=[];for(let h=0;h<24;h++)for(const mm of[0,30])if(h*60+mm<=maxM)ts.push(pad(h)+":"+pad(mm));
+  fillSel(tm,ts,null,tm.value||ts[ts.length-1]);
+  $("dt").value=y+"-"+pad(m)+"-"+pad(d)}
+function buildDate(){rebuildDate()}
+function syncDate(){const v=($("dt").value||"").split("-").map(Number);if(v.length<3||v.some(isNaN))return;const tmv=$("tm").value;
+  const dy=$("dy"),dm=$("dm"),dd=$("dd");dy.value=v[0];rebuildDate();dm.value=v[1];rebuildDate();dd.value=v[2];rebuildDate();$("tm").value=tmv;if($("tm").value!==tmv){rebuildDate()}}
+function readDate(){rebuildDate()}
 function applyI18n(){
   document.documentElement.lang=LANG;document.documentElement.dir=RTL[LANG]?"rtl":"ltr";
   document.querySelectorAll("[data-i18n]").forEach(e=>{e.textContent=(e.dataset.pre||"")+t(e.dataset.i18n)});
   document.querySelectorAll("[data-i18n-ph]").forEach(e=>{e.placeholder=t(e.dataset.i18nPh);e.setAttribute("aria-label",t(e.dataset.i18nPh))});
   const o=$("tz").options;o[0].textContent=t("tzTH");o[1].textContent=t("tzMT")+" (UTC+3)";o[2].textContent=t("tzMT")+" (UTC+2)";
-  const m=mNames();[...$("dm").options].forEach((x,i)=>x.textContent=m[i]);
+  rebuildDate();
   buildSel();document.title="Orderbook ( Aofxau )"}
 
 
@@ -184,13 +221,14 @@ let tzH=7;try{const v=parseFloat(localStorage.getItem("tzH"));if([7,3,2,0].inclu
 $("tz").value=String(tzH);
 const TZL=h=>"UTC"+(h>=0?"+":"")+h;
 function setInputs(ms){const q=new Date(ms+tzH*3600000);$("dt").value=q.getUTCFullYear()+"-"+pad(q.getUTCMonth()+1)+"-"+pad(q.getUTCDate());$("tm").value=pad(q.getUTCHours())+":"+pad(q.getUTCMinutes());syncDate()}
+function clampNow(){const T=selT(),ns=Math.floor(Date.now()/SL)*SL;if(!isNaN(T)&&T>ns)setInputs(ns)}
 function setNow(){setInputs(Math.floor(Date.now()/SL)*SL)}
 setNow();
 let offs={};try{offs=JSON.parse(localStorage.getItem("offs")||"{}")}catch(e){}
 let lastRaw=null;
 const saveOffs=()=>{try{localStorage.setItem("offs",JSON.stringify(offs))}catch(e){}};
 const shiftC=cs=>{lastRaw=cs.length?cs[cs.length-1].c:null;const f=offs[sel.value]||0;return f?cs.map(x=>({t:x.t,o:x.o+f,h:x.h+f,l:x.l+f,c:x.c+f})):cs};
-let mode="all",z=1,off=0,D=null,tfM=30,tfK=1,tfNote="",pxSrc="IG",srcTf=30,sent=null,realPx=false,realBook=false;
+let mode="all",z=1,off=0,D=null,tfM=5,tfK=1,tfNote="",pxSrc="IG",srcTf=5,sent=null,realPx=false,realBook=false;
 const TFN={1:120,5:120,30:96,60:72,240:48},TFL={1:"M1",5:"M5",30:"M30",60:"H1",240:"H4"},DUR=m=>m*60000;
 function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const selT=()=>{const d=($("dt").value||"").split("-").map(Number),m=($("tm").value||"00:00").split(":").map(Number);if(d.length<3||d.some(isNaN))return NaN;return Date.UTC(d[0],d[1]-1,d[2],m[0]||0,m[1]||0)-tzH*3600000};
@@ -291,7 +329,7 @@ const MC={x0:10,xe:585,cx:665,hw:95,b1:775};
 const HC={cx:190,hw:128,lx:0};
 function view(){const m=(D.mn+D.mx)/2,R=(D.mx-D.mn)*1.06/z;return[m+off-R/2,m+off+R/2]}
 function fmt(v){const a=Math.abs(v);return a>=1e6?(v/1e6).toFixed(2)+"M":a>=1e3?(v/1e3).toFixed(1)+"k":v.toFixed(a<10?2:1)}
-const gridY=(lo,hi,y,d,x1,x2,lx,anchor)=>{let o="";const gs=(hi-lo)/8;for(let i=0;i<=8;i++){const v=lo+gs*i,yy=y(v);o+=`<line x1="${x1}" x2="${x2}" y1="${yy}" y2="${yy}" stroke="#eef1f5"/>`+(i===0||i===8?"":`<text x="${lx}" y="${yy+4}" text-anchor="${anchor}">${v.toFixed(d)}</text>`)}return o};
+const gridY=(lo,hi,y,d,x1,x2,lx,anchor)=>{let o="";const gs=(hi-lo)/8;for(let i=0;i<=8;i++){const v=lo+gs*i,yy=y(v);o+=`<line x1="${x1}" x2="${x2}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/>`+(i===0||i===8?"":`<text x="${lx}" y="${yy+4}" text-anchor="${anchor}">${v.toFixed(d)}</text>`)}return o};
 // สรุปสัดส่วน 4 ส่วน (เหนือ/ใต้ราคา x ซ้าย/ขวา) ของชุดข้อมูล lv
 function quad(arr,cur){const q={tl:0,tr:0,bl:0,br:0};arr.forEach(l=>{if(l.price>cur){q.tl+=l.sell;q.tr+=l.buy}else{q.bl+=l.sell;q.br+=l.buy}});const t=(q.tl+q.tr+q.bl+q.br)||1;for(const k in q)q[k]=q[k]/t*100;return q}
 function bars(arr,y,bh,net,cx,hw,mx,op){
@@ -325,8 +363,8 @@ function draw(){
   const hist=(arr,mx,id,labels)=>{
     let h=gridY(lo,hi,y,d,32,HC.cx+HC.hw+6,0,"start");
     h+=bars(arr,y,bh,net,HC.cx,HC.hw,mx,.8);
-    h+=`<line x1="${HC.cx}" x2="${HC.cx}" y1="${yTop}" y2="${bot}" stroke="#d1d5db"/><line x1="32" x2="326" y1="${yc}" y2="${yc}" stroke="var(--gr)" stroke-width="1.6"/>`;
-    const T=(x,yy,an,col,txt)=>`<text x="${x}" y="${yy}" text-anchor="${an}" style="fill:${col};font-weight:600;font-size:12px;paint-order:stroke;stroke:#fff;stroke-width:3px">${txt}</text>`;
+    h+=`<line x1="${HC.cx}" x2="${HC.cx}" y1="${yTop}" y2="${bot}" stroke="var(--axis)"/><line x1="32" x2="326" y1="${yc}" y2="${yc}" stroke="var(--gr)" stroke-width="1.6"/>`;
+    const T=(x,yy,an,col,txt)=>`<text x="${x}" y="${yy}" text-anchor="${an}" style="fill:${col};font-weight:600;font-size:12px;paint-order:stroke;stroke:var(--card);stroke-width:3px">${txt}</text>`;
     h+=T(38,yTop+12,"start","var(--rd)",labels.tl)+T(326,yTop+12,"end","var(--bl)",labels.tr)+T(38,bot-5,"start","var(--rd)",labels.bl)+T(326,bot-5,"end","var(--bl)",labels.br);
     $(id).innerHTML=h;
   };
@@ -360,21 +398,25 @@ function tv(){
   w.appendChild(inner);
   const sc=document.createElement("script");sc.async=true;sc.type="text/javascript";
   sc.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-  sc.text=JSON.stringify({autosize:true,symbol:sym,interval:"5",timezone:"Asia/Bangkok",theme:"light",style:"1",locale:"th_TH",allow_symbol_change:false,hide_side_toolbar:true,save_image:false,support_host:"https://www.tradingview.com"});
+  sc.text=JSON.stringify({autosize:true,symbol:sym,interval:"5",timezone:"Asia/Bangkok",theme:(document.documentElement.dataset.theme==="light"?"light":"dark"),style:"1",locale:"th_TH",allow_symbol_change:false,hide_side_toolbar:true,save_image:false,support_host:"https://www.tradingview.com"});
   w.appendChild(sc);box.appendChild(w);
 }
 $("tv").closest("details").addEventListener("toggle",tv);
 async function refresh(reset){tv();if(reset){z=1;off=0}await build();await loadSent();genPos();draw();stats()}
 function setZ(f){z=Math.min(12,Math.max(1,z*f));if(z===1)off=0;draw()}
-function setMode(m){mode=m;$("mAll").setAttribute("aria-pressed",m==="all");$("mNet").setAttribute("aria-pressed",m==="net");draw()}
-function setTf(m){tfM=m;document.querySelectorAll("[data-tf]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tf===m));refresh(true)}
+function setMode(m){mode=m;sv("mode",m);$("mAll").setAttribute("aria-pressed",m==="all");$("mNet").setAttribute("aria-pressed",m==="net");draw()}
+function sv(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function setTf(m){tfM=m;sv("tf",m);document.querySelectorAll("[data-tf]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tf===m));refresh(true)}
 $("tz").onchange=()=>{const T=selT();tzH=parseFloat($("tz").value);try{localStorage.setItem("tzH",String(tzH))}catch(e){}if(!isNaN(T))setInputs(T);refresh(false)};
-sel.onchange=()=>refresh(true);$("tm").onchange=()=>refresh(true);["dd","dm","dy"].forEach(i=>$(i).onchange=()=>{readDate();refresh(true)});
+sel.onchange=()=>{sv("sym",sel.value);refresh(true)};$("tm").onchange=()=>{clampNow();refresh(true)};["dd","dm","dy"].forEach(i=>$(i).onchange=()=>{rebuildDate();clampNow();refresh(true)});
+function setTheme(m,save){document.documentElement.dataset.theme=m;$("th").textContent=m==="light"?"🌙":"☀";document.querySelector('meta[name="color-scheme"]').content=m;if(save)try{localStorage.setItem("theme",m)}catch(e){}$("tv").dataset.sym="";tv()}
+{let m="dark";try{m=localStorage.getItem("theme")||"dark"}catch(e){}setTheme(m)}
+$("th").onclick=()=>setTheme(document.documentElement.dataset.theme==="light"?"dark":"light",true);
 $("lang").innerHTML=LANGS.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");$("lang").value=LANG;
 $("lang").onchange=()=>{LANG=$("lang").value;try{localStorage.setItem("lang",LANG)}catch(e){}applyI18n();if(D&&D.cand)stats()};
 buildDate();applyI18n();
 let curSlot=Math.floor(Date.now()/SL)*SL,tickN=0;
-async function reload(){const b=$("rf");b.disabled=true;b.textContent=t("loading");const ns=Math.floor(Date.now()/SL)*SL;if(selT()===curSlot||isNaN(selT())){setInputs(ns)}curSlot=ns;try{await refresh(false)}finally{b.disabled=false;b.textContent="⟳ "+t("refresh")}}
+function reload(){location.reload()}
 $("rf").onclick=reload;
 setInterval(()=>{tickN++;const ns=Math.floor(Date.now()/SL)*SL;const following=selT()===curSlot;
   if(ns!==curSlot){if(following)setInputs(ns);curSlot=ns;refresh(false);tickN=0}
@@ -413,6 +455,9 @@ svgs.forEach(sv=>{
   });
   sv.addEventListener("pointerleave",()=>{$("ch").innerHTML=""});
 });
+try{const a=localStorage.getItem("sym");if(a&&[...sel.options].some(o=>o.value===a))sel.value=a;
+ const f=+localStorage.getItem("tf");if([1,5,30,60,240].includes(f)){tfM=f;document.querySelectorAll("[data-tf]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.tf===f))}
+ if(localStorage.getItem("mode")==="net")setMode("net")}catch(e){}
 refresh(true);
 })();
 </script>
